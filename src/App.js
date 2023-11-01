@@ -1,4 +1,4 @@
-import { useState } from "react";
+  import { useState } from "react";
 import {
   Avatar,
   Button,
@@ -7,7 +7,6 @@ import {
   FormItem,
   Input,
   Label,
-  TextArea,
   Grid,
   ShellBar,
   ShellBarItem,
@@ -17,12 +16,17 @@ function App() {
   const [data, setData] = useState({
     name: "",
     email: "",
-    comment: "",
+    linkedinid: "",
+    organization: "",
   });
+
+  let dataArray = [];
 
   const onSubmitClick = () => {
     console.log(data);
-    alert(`${data.name}:${data.email}:${data.comment}`);
+    alert(`${data.name}:${data.email}:${data.linkedinid}:${data.organization}`);
+    dataArray.push(data);
+    console.log(dataArray);
   };
 
   return (
@@ -30,12 +34,17 @@ function App() {
       <ShellBar
         logo={<img src="/favicon.ico" alt="logo" />}
         profile={<Avatar icon="employee" />}
-        primaryTitle="Data Collection"
+        primaryTitle="SAP TechEd 2023 - Women In Tech"
       >
         <ShellBarItem src="sap-icon://add" text="Add" />
       </ShellBar>
+      <div data-layout-indent="XL4 L4 M4 S4" data-layout-span="XL4 L4 M4 S4">
+      
+        </div>
+      <div data-layout-indent="XL4 L4 M4 S4"></div>
       <Grid>
         <div data-layout-indent="XL3 L3 M3 S3" data-layout-span="XL6 L6 M6 S6">
+        {<img src="/WIT_logo.jpeg" alt="wit_logo" />}
           <Form
             backgroundDesign="Transparent"
             columnsL={1}
@@ -50,7 +59,7 @@ function App() {
               alignItems: "center",
               paddingTop: "40px",
             }}
-            titleText="Title of the Form"
+            titleText=" "
           >
             <FormGroup>
               <FormItem label={<Label>Name</Label>}>
@@ -67,15 +76,18 @@ function App() {
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
               </FormItem>
-              <FormItem label={<Label>Comment</Label>}>
-                <TextArea
+              <FormItem label={<Label>LinkedInId</Label>}>
+                <Input
                   style={{ width: "100%" }}
-                  placeholder=""
-                  rows={5}
-                  value={data.comment}
-                  onChange={(e) =>
-                    setData({ ...data, comment: e.target.value })
-                  }
+                  value={data.linkedinid}
+                  onChange={(e) => setData({ ...data, linkedinid: e.target.value })}
+                />
+              </FormItem>
+              <FormItem label={<Label>Organization</Label>}>
+                <Input
+                  style={{ width: "100%" }}
+                  value={data.organization}
+                  onChange={(e) => setData({ ...data, organization: e.target.value })}
                 />
               </FormItem>
             </FormGroup>
