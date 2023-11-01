@@ -1,4 +1,4 @@
-  import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Avatar,
   Button,
@@ -10,23 +10,91 @@ import {
   Grid,
   ShellBar,
   ShellBarItem,
+  MessageStrip,
 } from "@ui5/webcomponents-react";
+import { CSVLink } from "react-csv";
+import feedbackData from "./data/feedback.json";
+
+const baseUrl = "http://localhost:8000";
 
 function App() {
+  const initialState = {
+    name: "",
+    email: "",
+    linkedinId: "",
+    organization: "",
+  };
+
   const [data, setData] = useState({
     name: "",
     email: "",
-    linkedinid: "",
+    linkedinId: "",
     organization: "",
   });
 
-  let dataArray = [];
+  const [alertMessage, setAlertMessage] = useState({
+    isHidden: true,
+    message: "",
+    type: "Positive",
+  });
+
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  const headers = [
+    { label: "Name", key: "name" },
+    { label: "Email", key: "email" },
+    { label: "LinkedIn Id", key: "linkedinId" },
+    { label: "Organization", key: "organization" },
+  ];
+
+  useEffect(() => {
+    if (!alertMessage.isHidden) {
+      const timeout = setTimeout(() => {
+        setAlertMessage({
+          isHidden: true,
+          message: "",
+          type: "Positive",
+        });
+      }, 3000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [alertMessage.isHidden]);
 
   const onSubmitClick = () => {
-    console.log(data);
-    alert(`${data.name}:${data.email}:${data.linkedinid}:${data.organization}`);
-    dataArray.push(data);
-    console.log(dataArray);
+    if (Object.keys(data).some((dataKey) => data[dataKey].length === 0)) {
+      setAlertMessage({
+        isHidden: false,
+        message: "Please enter all the data",
+        type: "Negative",
+      });
+      return;
+    }
+    setFeedbacks([...feedbacks, data]);
+    fetch(baseUrl + "/feedbacks", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => {
+        if (response.ok) {
+          setAlertMessage({
+            isHidden: false,
+            message: "Successfully saved your feedback",
+            type: "Positive",
+          });
+        }
+      })
+      .catch((error) => {
+        setAlertMessage({ isHidden: false, message: "Something went wrong" });
+        console.log(error.message);
+      });
+    setData(initialState);
   };
 
   return (
@@ -38,13 +106,8 @@ function App() {
       >
         <ShellBarItem src="sap-icon://add" text="Add" />
       </ShellBar>
-      <div data-layout-indent="XL4 L4 M4 S4" data-layout-span="XL4 L4 M4 S4">
-      
-        </div>
-      <div data-layout-indent="XL4 L4 M4 S4"></div>
       <Grid>
         <div data-layout-indent="XL3 L3 M3 S3" data-layout-span="XL6 L6 M6 S6">
-        {<img src="/WIT_logo.jpeg" alt="wit_logo" />}
           <Form
             backgroundDesign="Transparent"
             columnsL={1}
@@ -57,9 +120,9 @@ function App() {
             labelSpanXL={4}
             style={{
               alignItems: "center",
-              paddingTop: "40px",
+              paddingTop: "100px",
             }}
-            titleText=" "
+            titleText={<img src="/WIT_logo.jpeg" alt="wit_logo" />}
           >
             <FormGroup>
               <FormItem label={<Label>Name</Label>}>
@@ -76,18 +139,22 @@ function App() {
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
               </FormItem>
-              <FormItem label={<Label>LinkedInId</Label>}>
+              <FormItem label={<Label>LinkedIn ID</Label>}>
                 <Input
                   style={{ width: "100%" }}
-                  value={data.linkedinid}
-                  onChange={(e) => setData({ ...data, linkedinid: e.target.value })}
+                  value={data.linkedinId}
+                  onChange={(e) =>
+                    setData({ ...data, linkedinId: e.target.value })
+                  }
                 />
               </FormItem>
               <FormItem label={<Label>Organization</Label>}>
                 <Input
                   style={{ width: "100%" }}
                   value={data.organization}
-                  onChange={(e) => setData({ ...data, organization: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, organization: e.target.value })
+                  }
                 />
               </FormItem>
             </FormGroup>
@@ -95,7 +162,38 @@ function App() {
         </div>
         <div data-layout-indent="XL3 L3 M3 S3"></div>
         <div data-layout-indent="XL3 L3 M3 S3" data-layout-span="XL6 L6 M6 S6">
-          <Button onClick={onSubmitClick}>Submit</Button>
+          <Button onClick={onSubmitClick} style={{ margin: "10px" }}>
+            Submit
+          </Button>
+          <CSVLink
+            headers={headers}
+            data={feedbackData.feedbacks}
+            filename={"feedbacks.csv"}
+          >
+            <Button>Export Data</Button>
+          </CSVLink>
+        </div>
+        <div data-layout-indent="XL3 L3 M3 S3"></div>
+      </Grid>
+      <Grid>
+        <div data-layout-indent="XL3 L3 M3 S3" data-layout-span="XL6 L6 M6 S6">
+          {!alertMessage.isHidden && (
+            <MessageStrip
+              style={{
+                margin: "20px",
+              }}
+              design={alertMessage.type}
+              onClose={() =>
+                setAlertMessage({
+                  isHidden: true,
+                  message: "",
+                  type: "Positive",
+                })
+              }
+            >
+              {alertMessage.message}
+            </MessageStrip>
+          )}
         </div>
       </Grid>
     </>
